@@ -8,11 +8,9 @@ from duty.models import DutyCardTrip
 class Command(BaseCommand):
     help = 'Import duty card trips from a CSV file'
 
-    def add_arguments(self, parser):
-        parser.add_argument('csv_file', type=str, help='The path to the CSV file to import')
-
     def handle(self, *args, **kwargs):
-        csv_file_path = kwargs['csv_file']
+        # Specify the CSV file path directly in the code
+        csv_file_path = '/home/toobler/Sarun_project/Sarun_project/Drivers_Master/Dutycard_trips.csv'
 
         if not os.path.exists(csv_file_path):
             raise CommandError(f"File {csv_file_path} does not exist")
@@ -24,8 +22,10 @@ class Command(BaseCommand):
                     DutyCardTrip.objects.create(
                         duty_card_no=row['Duty Card No'],
                         route_name=row['Route Name'],
+                        trip_type=row['Trip Type'],
                         pick_up_time=row['Pick Up Time'],
-                        drop_off_time=row['Drop Off Time']
+                        drop_off_time=row['Drop Off Time'],
+                        shift_time=row['Shift Time']
                     )
                     self.stdout.write(self.style.SUCCESS(f"Duty Card Trip {row['Duty Card No']} imported successfully"))
                 except KeyError as e:
