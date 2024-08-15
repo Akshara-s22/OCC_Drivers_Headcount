@@ -146,6 +146,9 @@ def get_duty_card_details(request):
             trip['pick_up_time'] = trip['pick_up_time'].strftime("%H:%M")
             trip['drop_off_time'] = trip['drop_off_time'].strftime("%H:%M")
             trip['shift_time'] = trip['shift_time'].strftime("%H:%M")
+            trip['trip_type'] = trip['trip_type']  
+
+            print(trip)
 
         return JsonResponse({'trips': trip_details}, safe=False)
     
