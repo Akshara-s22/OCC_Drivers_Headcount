@@ -15,25 +15,20 @@
             background-color: #f8f9fa;
             color: #333;
         }
-
         .navbar {
             background-color: #6c757d;
         }
-
         .navbar-brand,
         .nav-link {
             color: white !important;
         }
-
         .navbar-brand {
             font-weight: bold;
             font-size: 1.25rem;
         }
-
         .navbar-toggler {
             border-color: rgba(255, 255, 255, 0.1);
         }
-
         .header-section {
             text-align: center;
             padding: 40px 20px;
@@ -43,25 +38,21 @@
             margin-bottom: 30px;
             border-bottom: 1px solid #ccc;
         }
-
         .header-section h1 {
             font-size: 2rem;
             margin-bottom: 10px;
             font-weight: 700;
         }
-
         .header-section p {
             font-size: 1rem;
             margin-bottom: 20px;
         }
-
         .header-section img {
             position: absolute;
             top: 10px;
             left: 25px;
             width: 100px;
         }
-
         .form-container {
             background-color: white;
             padding: 40px;
@@ -73,37 +64,31 @@
             margin-right: auto;
             border: 1px solid #ddd;
         }
-
         .form-group label {
             font-weight: 500;
             font-size: 1rem;
             color: #555;
         }
-
         .form-control {
             border-radius: 0.25rem;
             border: 1px solid #ccc;
-            height: 38px; /* Adjust height to make it consistent */
+            height: 38px;
             transition: border-color 0.3s ease;
         }
-
         .form-control:focus {
             border-color: #007bff;
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
-
         .form-control::placeholder {
             color: #888;
             font-style: italic;
             font-size: 0.9rem;
         }
-
         .btn-primary, .btn-success {
             border-radius: 0.25rem;
             font-weight: bold;
             padding: 10px 20px;
         }
-
         .add-icon {
             cursor: pointer;
             color: #28a745;
@@ -113,20 +98,17 @@
             align-self: center;
             margin-bottom: 20px;
         }
-
         .remove-trip {
             cursor: pointer;
             font-weight: bold;
             color: #dc3545;
         }
-
         .button-container {
             display: flex;
             gap: 10px;
             margin-top: 20px;
             justify-content: center;
         }
-
         .footer {
             background: #e9ecef;
             color: #333;
@@ -135,41 +117,33 @@
             margin-top: 30px;
             border-top: 1px solid #ccc;
         }
-
         .footer p {
             margin: 0;
             font-size: 0.9rem;
         }
-
         .trip-form-container {
             border-bottom: 1px solid #ddd;
             padding-bottom: 20px;
             margin-bottom: 20px;
         }
-
         .driver-form-container {
             margin-bottom: 40px;
         }
-
         @media (max-width: 768px) {
             .header-section img {
                 width: 70px;
                 top: 5px;
                 left: 10px;
             }
-
             .header-section {
                 padding: 30px 10px;
             }
-
             .header-section h1 {
                 font-size: 1.75rem;
             }
-
             .header-section p {
                 font-size: 0.95rem;
             }
-
             .form-container {
                 padding: 20px;
             }
@@ -193,7 +167,7 @@
                         <a class="nav-link" href="{% url 'enter_head_count' %}">Enter Details</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'report' %}">Reports</a> <!-- Updated link for Reports -->
+                        <a class="nav-link" href="{% url 'report' %}">Reports</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Contact</a>
@@ -234,7 +208,6 @@
         </div>
         {% endif %}
 
-        <!-- Combined Form for Driver and Trip Details -->
         <form id="driver-trip-form" method="post">
             {% csrf_token %}
             <div class="driver-form-container">
@@ -279,7 +252,6 @@
         $(document).ready(function() {
             var tripCount = 0;
 
-            // Function to add a new trip row
             function addTripRow(tripData = {}, index) {
                 var newRow = `
                     <div class="form-row trip-form-container">
@@ -325,22 +297,23 @@
                 tripCount++;
             }
 
-            // Event to add a new trip row
             $('#add-row').click(function() {
                 addTripRow({}, tripCount);
             });
 
-            // Event to remove a trip row
             $(document).on('click', '.remove-trip', function() {
                 $(this).closest('.trip-form-container').remove();
                 tripCount--;
-                if ($('.trip-form-container').length === 0) {
+                $('#id_drivertrip_set-TOTAL_FORMS').val(tripCount);
+                if (tripCount === 0) {
                     $('#submit-button').hide();
                 }
-                $('#id_drivertrip_set-TOTAL_FORMS').val(tripCount);
             });
 
-            // Autocomplete for staff ID
+            if (tripCount === 0) {
+                $('#submit-button').hide();
+            }
+
             $("#id_staff_id").autocomplete({
                 source: function(request, response) {
                     $.ajax({
@@ -381,12 +354,10 @@
                 }
             });
 
-            // Clear driver name when staff ID is cleared or changed
             $("#id_staff_id").on('input', function() {
                 $('#id_driver_name').val('');
             });
 
-            // Autocomplete for duty card number
             $("#id_duty_card_no").autocomplete({
                 source: function(request, response) {
                     $.ajax({
@@ -419,7 +390,7 @@
                         },
                         success: function(data) {
                             $('#trip-entries').empty();
-                            tripCount = 0; // Reset trip count
+                            tripCount = 0; 
                             data.trips.forEach(function(trip, index) {
                                 addTripRow(trip, index);
                             });
@@ -430,11 +401,6 @@
                     });
                 }
             });
-
-            // Initial call to hide the submit button if no trips are present
-            if (tripCount === 0) {
-                $('#submit-button').hide();
-            }
         });
     </script>
 </body>
