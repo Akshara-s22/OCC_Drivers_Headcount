@@ -252,7 +252,13 @@
         $(document).ready(function() {
             var tripCount = 0;
 
-            function addTripRow(tripData = {}, index) {
+            // Get today's date in YYYY-MM-DD format
+            var today = new Date().toISOString().split('T')[0];
+
+            function addTripRow(tripData = {}, index) {tripData
+                var selectedInbound = tripData.trip_type === 'IN' ? 'selected' : '';
+                var selectedOutbound = tripData.trip_type === 'OUT' ? 'selected' : '';
+
                 var newRow = `
                     <div class="form-row trip-form-container">
                         <div class="form-group">
@@ -262,8 +268,8 @@
                         <div class="form-group">
                             <label>Type</label>
                             <select name="drivertrip_set-${index}-trip_type" class="form-control" required>
-                                <option value="inbound" ${tripData.trip_type === 'inbound' ? 'selected' : ''}>Inbound</option>
-                                <option value="outbound" ${tripData.trip_type === 'outbound' ? 'selected' : ''}>Outbound</option>
+                                <option value="inbound" ${selectedInbound}>Inbound</option>
+                                <option value="outbound" ${selectedOutbound}>Outbound</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -276,11 +282,11 @@
                         </div>
                         <div class="form-group">
                             <label>Shift Time</label>
-                            <input type="time" name="drivertrip_set-${index}-shift_time" class="form-control" placeholder="Enter Shift Time" required>
+                            <input type="time" name="drivertrip_set-${index}-shift_time" class="form-control" value="${tripData.shift_time || ''}" placeholder="Enter Shift Time" required>
                         </div>
                         <div class="form-group">
                             <label>Date</label>
-                            <input type="date" name="drivertrip_set-${index}-date" class="form-control" value="${tripData.date || ''}" required>
+                            <input type="date" name="drivertrip_set-${index}-date" class="form-control" value="${tripData.date || today}" required>
                         </div>
                         <div class="form-group">
                             <label>Head Count</label>
