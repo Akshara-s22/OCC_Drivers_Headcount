@@ -65,7 +65,7 @@ def report_view(request):
     context = {
         'driver_trips': driver_trips,
     }
-    return render(request, 'report_data.html', context)
+    return render(request, 'duty/report_data.html', context)
 
 def download_report(request):
     date_filter = request.GET.get('date')
