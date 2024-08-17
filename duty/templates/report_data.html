@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Driver Trip Report</title>
+    <title>Driver Trip Report (Table: duty_drivertrip)</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
@@ -59,7 +59,8 @@
 
         .filter-controls {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
@@ -72,6 +73,7 @@
             text-transform: uppercase;
             font-weight: bold;
             transition: background-color 0.3s ease;
+            align-self: flex-start;
         }
 
         .btn-custom:hover {
@@ -82,19 +84,71 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .filter-controls {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th,
+            td {
+                padding: 8px;
+            }
+
+            .container {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .card {
+                padding: 15px;
+            }
+
+            th,
+            td {
+                padding: 6px;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            .btn-custom {
+                width: 100%;
+                text-align: center;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .navbar-nav .nav-link {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg">
         <a class="navbar-brand" href="{% url 'home' %}">Driver Head Count</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'home' %}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'report' %}">Reports</a>
+                    <a class="nav-link" href="{% url 'enter_head_count' %}">Enter Details</a>
                 </li>
             </ul>
         </div>
@@ -102,43 +156,62 @@
 
     <div class="container">
         <div class="card">
-            <h1>Driver Trip Report</h1>
+            <h1>Driver Trip Report </h1>
             <div class="filter-controls">
                 <input type="date" id="dateFilter" class="form-control" style="max-width: 200px;">
+                <select id="routeFilter" class="form-control" style="max-width: 200px;">
+                    <option value="">Select Route</option>
+                    {% for route in routes %}
+                    <option value="{{ route }}">{{ route }}</option>
+                    {% endfor %}
+                </select>
+                <select id="tripTypeFilter" class="form-control" style="max-width: 200px;">
+                    <option value="">Select Trip Type</option>
+                    <option value="inbound">Inbound</option>
+                    <option value="outbound">Outbound</option>
+                </select>
+                <select id="shiftTimeFilter" class="form-control" style="max-width: 200px;">
+                    <option value="">Select Shift Time</option>
+                    {% for shift_time in shift_times %}
+                    <option value="{{ shift_time }}">{{ shift_time }}</option>
+                    {% endfor %}
+                </select>
                 <button id="downloadButton" class="btn btn-custom" disabled>Download XLSX</button>
             </div>
-            <table id="reportTable" class="table">
-                <thead>
-                    <tr>
-                        <th>Staff ID</th>
-                        <th>Driver Name</th>
-                        <th>Duty Card No</th>
-                        <th>Route Name</th>
-                        <th>Pick Up Time</th>
-                        <th>Drop Off Time</th>
-                        <th>Shift Time</th>
-                        <th>Trip Type</th>
-                        <th>Date</th>
-                        <th>Head Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for trip in driver_trips %}
-                    <tr>
-                        <td>{{ trip.driver.staff_id }}</td>
-                        <td>{{ trip.driver.driver_name }}</td>
-                        <td>{{ trip.driver.duty_card_no }}</td>
-                        <td>{{ trip.route_name }}</td>
-                        <td>{{ trip.pick_up_time|time:"H:i" }}</td>
-                        <td>{{ trip.drop_off_time|time:"H:i" }}</td>
-                        <td>{{ trip.shift_time|time:"H:i" }}</td>
-                        <td>{{ trip.trip_type }}</td>
-                        <td>{{ trip.date }}</td>
-                        <td>{{ trip.head_count }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="reportTable" class="table">
+                    <thead>
+                        <tr>
+                            <th>Staff ID</th>
+                            <th>Driver Name</th>
+                            <th>Duty Card No</th>
+                            <th>Route Name</th>
+                            <th>Pick Up Time</th>
+                            <th>Drop Off Time</th>
+                            <th>Shift Time</th>
+                            <th>Trip Type</th>
+                            <th>Date</th>
+                            <th>Head Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in driver_trips %}
+                        <tr>
+                            <td>{{ trip.driver.staff_id }}</td>
+                            <td>{{ trip.driver.driver_name }}</td>
+                            <td>{{ trip.duty_card.duty_card_no }}</td>
+                            <td>{{ trip.route_name }}</td>
+                            <td>{{ trip.pick_up_time|time:"H:i" }}</td>
+                            <td>{{ trip.drop_off_time|time:"H:i" }}</td>
+                            <td>{{ trip.shift_time|time:"H:i" }}</td>
+                            <td>{{ trip.trip_type }}</td>
+                            <td>{{ trip.date }}</td>
+                            <td>{{ trip.head_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -146,27 +219,36 @@
     <script>
         $(document).ready(function () {
             const $dateFilter = $('#dateFilter');
+            const $routeFilter = $('#routeFilter');
+            const $tripTypeFilter = $('#tripTypeFilter');
+            const $shiftTimeFilter = $('#shiftTimeFilter');
             const $downloadButton = $('#downloadButton');
             const $reportTable = $('#reportTable tbody');
 
-            $dateFilter.on('change', function () {
+            function fetchData() {
                 const date = $dateFilter.val();
-                if (date) {
-                    $.get("{% url 'report' %}", { date: date }, function (data) {
-                        $reportTable.html($(data).find('#reportTable tbody').html());
-                        $downloadButton.prop('disabled', false).data('date', date);
-                    });
-                } else {
-                    $.get("{% url 'report' %}", function (data) {
-                        $reportTable.html($(data).find('#reportTable tbody').html());
-                        $downloadButton.prop('disabled', true);
-                    });
-                }
-            });
+                const route = $routeFilter.val();
+                const tripType = $tripTypeFilter.val();
+                const shiftTime = $shiftTimeFilter.val();
+
+                $.get("{% url 'report' %}", { date, route, trip_type: tripType, shift_time: shiftTime }, function (data) {
+                    $reportTable.html($(data).find('#reportTable tbody').html());
+                    $downloadButton.prop('disabled', false);
+                });
+            }
+
+            $dateFilter.on('change', fetchData);
+            $routeFilter.on('change', fetchData);
+            $tripTypeFilter.on('change', fetchData);
+            $shiftTimeFilter.on('change', fetchData);
 
             $downloadButton.on('click', function () {
-                const date = $downloadButton.data('date');
-                window.location.href = "{% url 'download-report' %}?date=" + date;
+                const date = $dateFilter.val();
+                const route = $routeFilter.val();
+                const tripType = $tripTypeFilter.val();
+                const shiftTime = $shiftTimeFilter.val();
+
+                window.location.href = "{% url 'download-report' %}?date=" + date + "&route=" + route + "&trip_type=" + tripType + "&shift_time=" + shiftTime;
             });
         });
     </script>
