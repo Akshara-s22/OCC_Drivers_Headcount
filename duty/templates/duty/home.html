@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Driver Head Count</title>
@@ -88,6 +88,15 @@
             margin: 0;
         }
 
+        .staff-name {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .header-section {
                 padding: 30px 15px;
@@ -125,23 +134,23 @@
                     <a class="nav-link" href="{% url 'report' %}">Reports</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Contact</a>
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                 </li>
             </ul>
         </div>
     </nav>
 
     <div class="header-section">
+        <span class="staff-name">Welcome, {{ staff_name }}!</span>
         <img src="https://et.ae/wp-content/uploads/2020/03/Logo.svg" alt="Logo">
         <h1>Welcome to OCC-EKG project</h1>
         <p>Manage and track driver details and trip information efficiently.</p>
-
     </div>
 
     <div class="container">
         <div class="card-container">
             <div class="card">
-                <img class="card-img-top" src="https://raw.githubusercontent.com/Akshara-s22/OCC_Drivers_Headcount/Single-form-feature/staticfiles/Card_image_OCCSTM.jpg" alt="Card image OCCSTM">
+                <img class="card-img-top" src="{% static 'Card_image_OCCSTM.jpg' %}" alt="Card image OCCSTM">
                 <div class="card-body">
                     <h5 class="card-title">Driver Headcount</h5>
                     <p class="card-text">Add your trip and head count details.</p>
@@ -166,5 +175,4 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
-
 </html>

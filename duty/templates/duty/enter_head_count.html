@@ -129,6 +129,13 @@
         .driver-form-container {
             margin-bottom: 40px;
         }
+        .navbar-text {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            color: white;
+            font-weight: bold;
+        }
         @media (max-width: 768px) {
             .header-section img {
                 width: 70px;
@@ -146,6 +153,10 @@
             }
             .form-container {
                 padding: 20px;
+            }
+            .navbar-text {
+                right: 10px;
+                top: 5px;
             }
         }
     </style>
@@ -170,7 +181,12 @@
                         <a class="nav-link" href="{% url 'report' %}">Reports</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Contact</a>
+                        {% if user.is_authenticated %}
+                            <span class="navbar-text">Welcome, {{ staff_name }}!</span>
+                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                        {% else %}
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        {% endif %}
                     </li>
                 </ul>
             </div>
@@ -200,14 +216,8 @@
             {% csrf_token %}
             <div class="driver-form-container">
                 <div class="form-row">
-                    <div class="form-group col-md-4">
-                        <label for="id_staff_id" class="form-label">Staff ID</label>
-                        <input type="text" id="id_staff_id" name="staff_id" class="form-control" placeholder="e.g., 12345" required>
-                    </div>
-                    <div class="form-group col-md-4">
-                        <label for="id_driver_name" class="form-label">Driver Name</label>
-                        <input type="text" id="id_driver_name" name="driver_name" class="form-control" placeholder="e.g., Sarun" readonly >
-                    </div>
+                    <input type="hidden" id="id_staff_id" name="staff_id" value="{{ user.username }}">
+                    <input type="hidden" id="id_driver_name" name="driver_name" value="{{ staff_name }}">
                     <div class="form-group col-md-4">
                         <label for="id_duty_card_no" class="form-label">Duty Card No</label>
                         <input type="text" id="id_duty_card_no" name="duty_card_no" class="form-control" placeholder="e.g., A012" required>
@@ -280,7 +290,7 @@
                         </div>
                         <div class="form-group col-md-1">
                             <label>Head Count</label>
-                            <input type="number" name="drivertrip_set-${index}-head_count" class="form-control" placeholder="Enter Head Count" required>
+                            <input type="number" name="drivertrip_set-${index}-head_count" class="form-control" placeholder="Enter Head Count" value="${tripData.head_count || ''}" required>
                         </div>
                         <div class="remove-trip-container col-md-1">
                             <span class="remove-trip">Remove</span>
@@ -309,50 +319,6 @@
             if (tripCount === 0) {
                 $('#submit-button').hide();
             }
-
-            $("#id_staff_id").autocomplete({
-                source: function(request, response) {
-                    $.ajax({
-                        url: "{% url 'staff-id-autocomplete' %}",
-                        dataType: "json",
-                        data: {
-                            term: request.term
-                        },
-                        success: function(data) {
-                            response($.map(data, function(item) {
-                                return {
-                                    label: item,
-                                    value: item
-                                };
-                            }));
-                        },
-                        error: function(xhr, status, error) {
-                            console.log("Error fetching autocomplete data for staff_id:", error);
-                        }
-                    });
-                },
-                minLength: 2,
-                select: function(event, ui) {
-                    console.log("Selected staff_id:", ui.item.value);
-                    $.ajax({
-                        url: "{% url 'get-driver-name' %}",
-                        dataType: "json",
-                        data: {
-                            staff_id: ui.item.value
-                        },
-                        success: function(data) {
-                            $('#id_driver_name').val(data.driver_name);
-                        },
-                        error: function(xhr, status, error) {
-                            console.log("Error fetching driver name:", error);
-                        }
-                    });
-                }
-            });
-
-            $("#id_staff_id").on('input', function() {
-                $('#id_driver_name').val('');
-            });
 
             $("#id_duty_card_no").autocomplete({
                 source: function(request, response) {
