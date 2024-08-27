@@ -3,18 +3,34 @@ from django.http import JsonResponse, HttpResponse
 from .forms import DriverTripFormSet, CustomUserCreationForm
 from .models import DriverTrip, DriverImportLog, DutyCardTrip
 from django.contrib.auth import login, authenticate, logout
-import pandas as pd
-from datetime import datetime, timedelta
-import xlsxwriter
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from datetime import datetime, timedelta
+import pandas as pd
+import logging
+import xlsxwriter
+from .decorators import user_in_driverimportlog_required
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 @login_required
 def home(request):
-    return render(request, 'duty/home.html')
+    # Fetch the staff name using the logged-in user's username (assumed to be their staff ID)
+    staff_id = request.user.username
+    staff_name = DriverImportLog.objects.filter(staff_id=staff_id).values_list('driver_name', flat=True).first()
+    if not staff_name:
+        staff_name = request.user.username  # Fallback to username if staff name is not found
+
+    return render(request, 'duty/home.html', {'staff_name': staff_name})
 
 @login_required
 def enter_head_count(request):
+    # Fetch the staff name using the logged-in user's username (assumed to be their staff ID)
+    staff_id = request.user.username
+    driver = DriverImportLog.objects.filter(staff_id=staff_id).first()
+    staff_name = driver.driver_name if driver else request.user.username  # Fallback to username if staff name is not found
+
     if request.method == 'POST':
         trip_formset = DriverTripFormSet(request.POST, prefix='drivertrip_set')
 
@@ -24,6 +40,7 @@ def enter_head_count(request):
         if not duty_card_no:
             return render(request, 'duty/enter_head_count.html', {  
                 'trip_formset': trip_formset,
+                'staff_name': staff_name,
                 'error_message': "Please fill in the Duty Card No.",
             })
 
@@ -54,6 +71,7 @@ def enter_head_count(request):
                 if duplicate_entry:
                     return render(request, 'duty/enter_head_count.html', {
                         'trip_formset': trip_formset,
+                        'staff_name': staff_name,
                         'duty_card': duty_card,
                         'error_message': "Duplicate entry found. Please check your input.",
                     })
@@ -63,19 +81,23 @@ def enter_head_count(request):
                             trip = form.save(commit=False)
                             trip.date = desired_date  # Set the date to the desired date
                             trip.duty_card = duty_card
+                            trip.driver = driver  # Set the driver ID from the logged-in user's staff ID
                             trip.save()
 
                     return redirect('success')  # Redirect to the success page after saving the data
             else:
                 return render(request, 'duty/enter_head_count.html', {
                     'trip_formset': trip_formset,
+                    'staff_name': staff_name,
                     'duty_card': duty_card,
                     'error_message': "Please correct the errors below.",
                 })
 
         except Exception as e:
+            logger.error(f"Error occurred while entering head count: {str(e)}")
             return render(request, 'duty/enter_head_count.html', {
                 'trip_formset': trip_formset,
+                'staff_name': staff_name,
                 'error_message': f"An error occurred: {str(e)}",
                 'duty_card': duty_card,
             })
@@ -85,6 +107,7 @@ def enter_head_count(request):
 
     return render(request, 'duty/enter_head_count.html', {
         'trip_formset': trip_formset,
+        'staff_name': staff_name,
     })
 
 @login_required
@@ -92,13 +115,14 @@ def success(request):
     return render(request, 'duty/success.html')
 
 @login_required
+@user_in_driverimportlog_required  # Apply the custom decorator here
 def report_view(request):
     date_filter = request.GET.get('date')
     route_filter = request.GET.get('route')
     shift_time_filter = request.GET.get('shift_time')
     trip_type_filter = request.GET.get('trip_type')
 
-    driver_trips = DriverTrip.objects.all()
+    driver_trips = DriverTrip.objects.filter(staff_id=request.user.username)  # Filter based on logged-in user
 
     if date_filter:
         driver_trips = driver_trips.filter(date=date_filter)
@@ -134,7 +158,7 @@ def download_report(request):
     shift_time_filter = request.GET.get('shift_time')
     trip_type_filter = request.GET.get('trip_type')
 
-    driver_trips = DriverTrip.objects.all()
+    driver_trips = DriverTrip.objects.filter(staff_id=request.user.username)  # Filter based on logged-in user
 
     if date_filter:
         driver_trips = driver_trips.filter(date=date_filter)
@@ -148,8 +172,8 @@ def download_report(request):
     data = []
     for trip in driver_trips:
         data.append({
-            'Staff ID': trip.driver.staff_id,
-            'Driver Name': trip.driver.driver_name,
+            'Staff ID': trip.staff_id,
+            'Driver Name': trip.driver_name,
             'Duty Card No': trip.duty_card.duty_card_no,
             'Route Name': trip.route_name,
             'Pick Up Time': trip.pick_up_time.strftime("%H:%M"),
@@ -237,15 +261,16 @@ def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')
+            logger.debug("Form is valid, saving user.")
+            user = form.save()
+            messages.success(request, 'Your account has been created successfully! Please log in.')
+            return redirect('login')  # Redirect to the login page
+        else:
+            logger.warning("Form is not valid.")
     else:
+        logger.debug("GET request, rendering signup form.")
         form = CustomUserCreationForm()
+    
     return render(request, 'registration/signup.html', {'form': form})
 
 def user_logout(request):
