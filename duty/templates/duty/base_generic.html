@@ -6,11 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}OCC-EKG Project{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">
-    <!-- Add favicon link here to avoid 404 errors -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.5.0/font/bootstrap-icons.min.css">
     <link rel="icon" href="{% static 'your_app/favicon.ico' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: url('{% static 'images/background.jpg' %}') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">OCC-EKG Project</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,6 +77,50 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            let idleTime = 0;
+
+            function resetIdleTimer() {
+                idleTime = 0;
+            }
+
+            // Increment the idle time counter every minute.
+            const idleInterval = setInterval(timerIncrement, 60000); // 1 minute
+
+            function timerIncrement() {
+                idleTime += 1;
+                if (idleTime >= 3) { // 3 minutes
+                    window.location.href = "{% url 'logout' %}";
+                }
+            }
+
+            // Reset the idle timer on any of these events.
+            $(this).mousemove(resetIdleTimer);
+            $(this).keypress(resetIdleTimer);
+            $(this).scroll(resetIdleTimer);
+            $(this).click(resetIdleTimer);
+
+            // Reset timer when switching tabs or windows
+            $(window).on("focus", function () {
+                resetIdleTimer();
+            });
+        });
+    </script>
+
+    <script>
+        // Ping server before user leaves the page
+        window.onbeforeunload = function() {
+            // This AJAX call will notify the server to log the user out
+            fetch("{% url 'logout' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            });
+        }
+    </script>
+
 </body>
 </html>
-    

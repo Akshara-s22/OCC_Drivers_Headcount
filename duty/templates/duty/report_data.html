@@ -139,14 +139,6 @@
             font-size: 0.9rem;
         }
 
-        /* Improve visibility of select container */
-        .filter-controls select {
-            padding-right: 15px;
-            text-align-last: center;
-            overflow: hidden;
-        }
-
-        /* Table styling */
         .table thead th {
             background-color: #17a2b8;
         }
@@ -155,7 +147,6 @@
             background-color: #e9f7fa;
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             th,
             td {
@@ -290,6 +281,10 @@
                             <td>{{ trip.date }}</td>
                             <td>{{ trip.head_count }}</td>
                         </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No data available</td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -307,7 +302,7 @@
                 searching: true,
                 order: [[0, 'asc']],
                 columnDefs: [{
-                    targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    targets: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                     orderable: true
                 }],
                 dom: '<"top"f>rt<"bottom"p><"clear">',
@@ -353,9 +348,10 @@
                 checkFilters();
             });
 
+
             $('#shiftTimeFilter').on('input', function() {
                 const shiftTimeValue = $(this).val();
-                $reportTable.column(6).search(shiftTimeValue).draw();
+                $reportTable.column(5).search(shiftTimeValue).draw();
                 checkFilters();
             });
 

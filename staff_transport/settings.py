@@ -46,7 +46,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'duty.middleware.AutoLogoutMiddleware', 
 ]
+
+AUTO_LOGOUT_DELAY = 3
+
+# Set session cookie to expire when the browser closes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Optionally, you can also set the session age
+SESSION_COOKIE_AGE = 180 
 
 # URL configuration
 ROOT_URLCONF = 'staff_transport.urls'
@@ -63,7 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-            ],
+            ],  
         },
     },
 ]
@@ -141,3 +150,4 @@ LOGGING = {
 }
 # Redirect to the home page after login
 LOGIN_REDIRECT_URL = '/'
+

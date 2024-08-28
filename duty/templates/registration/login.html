@@ -1,28 +1,55 @@
 {% extends "duty/base_generic.html" %}
 
+{% block title %}Login - OCC-EKG Project{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2>Login</h2>
-    
-    <!-- Display error messages if login fails -->
-    {% if form.errors %}
-    <div class="alert alert-danger">
-        <strong>Error:</strong> Please check your Staff ID and password.
+<div class="container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card shadow-sm" style="border-radius: 10px;">
+                <div class="card-body p-5" style="background-color: #f7f9fc;">
+                    <h3 class="card-title text-center mb-4" style="color: #333;">Login to Your Account</h3>
+                    
+                    <!-- Display error messages if login fails -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> Please check your Staff ID and password.
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group mb-4">
+                            <label for="id_username" class="form-label" style="color: #555;">Staff ID</label>
+                            <div class="input-group">
+                                <div class="input-group-text bg-white"><i class="bi bi-person-badge"></i></div>
+                                <input type="text" id="id_username" name="username" class="form-control" placeholder="Enter your Staff ID" required>
+                            </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="id_password" class="form-label" style="color: #555;">Password</label>
+                            <div class="input-group">
+                                <div class="input-group-text bg-white"><i class="bi bi-key"></i></div>
+                                <input type="password" id="id_password" name="password" class="form-control" placeholder="Enter your password" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" style="background-color: #007bff; border-color: #007bff;">Login</button>
+                    </form>
+
+                    <p class="text-center mt-4 mb-0" style="color: #555;">Don't have an account? <a href="{% url 'signup' %}">Sign Up here</a>.</p>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
-    
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="id_username">Enter your Staff ID</label>
-            <input type="text" id="id_username" name="username" class="form-control" placeholder="Enter your Staff ID" required>
-        </div>
-        <div class="form-group mt-3">
-            <label for="id_password">Password</label>
-            <input type="password" id="id_password" name="password" class="form-control" placeholder="Enter your password" required>
-        </div>
-        <button type="submit" class="btn btn-primary mt-3">Login</button>
-    </form>
-    <p class="mt-3">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p> <!-- Added Sign Up link -->
 </div>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    body {
+        background: linear-gradient(135deg, #6f86d6, #48c6ef); /* Background gradient */
+        background-size: cover;
+        color: #333;
+    }
+</style>
 {% endblock %}

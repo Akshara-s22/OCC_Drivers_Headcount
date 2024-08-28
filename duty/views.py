@@ -19,10 +19,32 @@ def home(request):
     # Fetch the staff name using the logged-in user's username (assumed to be their staff ID)
     staff_id = request.user.username
     staff_name = DriverImportLog.objects.filter(staff_id=staff_id).values_list('driver_name', flat=True).first()
+    
     if not staff_name:
         staff_name = request.user.username  # Fallback to username if staff name is not found
 
-    return render(request, 'duty/home.html', {'staff_name': staff_name})
+    # Example of converting datetime to string
+    driver_trips = DriverTrip.objects.filter(driver__staff_id=staff_id)
+    driver_trip_data = []
+    for trip in driver_trips:
+        trip_data = {
+            'route_name': trip.route_name,
+            'pick_up_time': trip.pick_up_time.strftime('%H:%M:%S'),  # Convert time to string
+            'drop_off_time': trip.drop_off_time.strftime('%H:%M:%S'),  # Convert time to string
+            'shift_time': trip.shift_time.strftime('%H:%M:%S'),  # Convert time to string
+            'head_count': trip.head_count,
+            'trip_type': trip.trip_type,
+            'date': trip.date.strftime('%Y-%m-%d')  # Convert date to string
+        }
+        driver_trip_data.append(trip_data)
+
+    context = {
+        'staff_name': staff_name,
+        'driver_trips': driver_trip_data,
+    }
+
+    return render(request, 'duty/home.html', context)
+
 
 @login_required
 def enter_head_count(request):
@@ -117,48 +139,63 @@ def success(request):
 @login_required
 @user_in_driverimportlog_required  # Apply the custom decorator here
 def report_view(request):
+    # Retrieve filters from the request
     date_filter = request.GET.get('date')
     route_filter = request.GET.get('route')
     shift_time_filter = request.GET.get('shift_time')
     trip_type_filter = request.GET.get('trip_type')
 
-    driver_trips = DriverTrip.objects.filter(staff_id=request.user.username)  # Filter based on logged-in user
+    # Start with all DriverTrip objects
+    driver_trips = DriverTrip.objects.all()
 
+    # Apply date filter if provided
     if date_filter:
-        driver_trips = driver_trips.filter(date=date_filter)
+        try:
+            date_obj = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            driver_trips = driver_trips.filter(date=date_obj)
+        except ValueError:
+            driver_trips = driver_trips.none()
+
+    # Apply route filter if provided (case-insensitive)
     if route_filter:
-        driver_trips = driver_trips.filter(route_name=route_filter)
+        driver_trips = driver_trips.filter(route_name__icontains=route_filter)
+
+    # Apply shift time filter if provided
     if shift_time_filter:
         try:
             parsed_shift_time = datetime.strptime(shift_time_filter, '%H:%M').time()
             driver_trips = driver_trips.filter(shift_time=parsed_shift_time)
         except ValueError:
             driver_trips = driver_trips.none()
-    if trip_type_filter:
-        driver_trips = driver_trips.filter(trip_type=trip_type_filter)
 
+    # Apply trip type filter if provided (case-insensitive)
+    if trip_type_filter:
+        driver_trips = driver_trips.filter(trip_type__iexact=trip_type_filter)
+
+    # Get distinct routes and shift times
     routes = driver_trips.values_list('route_name', flat=True).distinct()
     shift_times = driver_trips.values_list('shift_time', flat=True).distinct()
 
+    # Prepare the context
     context = {
         'driver_trips': driver_trips,
         'routes': routes,
         'shift_times': shift_times,
     }
 
+    # Render the appropriate template based on the request type
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'duty/report_data.html', context)
     else:
         return render(request, 'duty/report_data.html', context)
 
-@login_required
 def download_report(request):
     date_filter = request.GET.get('date')
     route_filter = request.GET.get('route')
     shift_time_filter = request.GET.get('shift_time')
     trip_type_filter = request.GET.get('trip_type')
 
-    driver_trips = DriverTrip.objects.filter(staff_id=request.user.username)  # Filter based on logged-in user
+    driver_trips = DriverTrip.objects.all()
 
     if date_filter:
         driver_trips = driver_trips.filter(date=date_filter)
@@ -172,8 +209,8 @@ def download_report(request):
     data = []
     for trip in driver_trips:
         data.append({
-            'Staff ID': trip.staff_id,
-            'Driver Name': trip.driver_name,
+            'Staff ID': trip.driver.staff_id,
+            'Driver Name': trip.driver.driver_name,
             'Duty Card No': trip.duty_card.duty_card_no,
             'Route Name': trip.route_name,
             'Pick Up Time': trip.pick_up_time.strftime("%H:%M"),
@@ -194,7 +231,6 @@ def download_report(request):
 
     return response 
 
-@login_required
 def staff_id_autocomplete(request):
     if 'term' in request.GET:
         term = request.GET.get('term')
@@ -203,7 +239,6 @@ def staff_id_autocomplete(request):
         return JsonResponse(staff_ids, safe=False)
     return JsonResponse([], safe=False)
 
-@login_required
 def get_driver_name(request):
     staff_id = request.GET.get('staff_id', None)
     if staff_id:
@@ -214,7 +249,6 @@ def get_driver_name(request):
             return JsonResponse({'driver_name': ''})
     return JsonResponse({'driver_name': ''})
 
-@login_required
 def duty_card_no_autocomplete(request):
     if 'term' in request.GET:
         term = request.GET.get('term')
@@ -222,7 +256,6 @@ def duty_card_no_autocomplete(request):
         duty_card_nos = list(set(qs))
         return JsonResponse(duty_card_nos, safe=False)
 
-@login_required
 def get_duty_card_details(request):
     if 'duty_card_no' in request.GET:
         duty_card_no = request.GET.get('duty_card_no')
