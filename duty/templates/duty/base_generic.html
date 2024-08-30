@@ -6,121 +6,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}OCC-EKG Project{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.5.0/font/bootstrap-icons.min.css">
-    <link rel="icon" href="{% static 'your_app/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'duty/favicon.ico' %}" type="image/x-icon">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background: url('{% static 'images/background.jpg' %}') no-repeat center center fixed;
-            background-size: cover;
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
         }
-        .card {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-        }
+
         .navbar {
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: #343a40;
+            padding: 1rem;
+        }
+
+        .navbar-brand {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .container {
+            margin: 50px auto;
+            max-width: 1200px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #343a40;
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            background-color: #343a40;
+            color: #ffffff;
+            padding: 10px 0;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light">
+    <!-- Navbar -->
+    <nav class="navbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">OCC-EKG Project</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                {% if user.is_authenticated %}
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'enter_head_count' %}">Enter Details</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'report' %}">Reports</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-                    </li>
-                </ul>
-                {% endif %}
-            </div>
         </div>
     </nav>
 
+    <!-- Main Content -->
     <div class="container">
-        {% if messages %}
-        <div class="mt-3">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
         {% block content %}
         {% endblock %}
     </div>
-    
-    <footer class="footer mt-auto py-3 bg-light">
-        <div class="container text-center">
-            <span class="text-muted">&copy; Emirates Airline Staff Transport Project.</span>
-        </div>
+
+    <!-- Footer -->
+    <footer>
+        &copy; Emirates Airline Staff Transport Project
     </footer>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            let idleTime = 0;
-
-            function resetIdleTimer() {
-                idleTime = 0;
-            }
-
-            // Increment the idle time counter every minute.
-            const idleInterval = setInterval(timerIncrement, 60000); // 1 minute
-
-            function timerIncrement() {
-                idleTime += 1;
-                if (idleTime >= 3) { // 3 minutes
-                    window.location.href = "{% url 'logout' %}";
-                }
-            }
-
-            // Reset the idle timer on any of these events.
-            $(this).mousemove(resetIdleTimer);
-            $(this).keypress(resetIdleTimer);
-            $(this).scroll(resetIdleTimer);
-            $(this).click(resetIdleTimer);
-
-            // Reset timer when switching tabs or windows
-            $(window).on("focus", function () {
-                resetIdleTimer();
-            });
-        });
-    </script>
-
-    <script>
-        // Ping server before user leaves the page
-        window.onbeforeunload = function() {
-            // This AJAX call will notify the server to log the user out
-            fetch("{% url 'logout' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                }
-            });
-        }
-    </script>
-
 </body>
 </html>
