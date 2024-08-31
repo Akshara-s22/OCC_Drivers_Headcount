@@ -146,8 +146,6 @@ def report_view(request):
     shift_time_filter = request.GET.get('shift_time')
     trip_type_filter = request.GET.get('trip_type')
 
-    print(f"Received filters: date_range={date_range}, route={route_filter}, shift_time={shift_time_filter}, trip_type={trip_type_filter}")
-
     # Start with all DriverTrip objects
     driver_trips = DriverTrip.objects.all()
 
@@ -157,38 +155,39 @@ def report_view(request):
             start_date, end_date = date_range.split(' - ')
             start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-            print(f"Filtering by date range: {start_date} to {end_date}")
             driver_trips = driver_trips.filter(date__range=(start_date, end_date))
         except ValueError as e:
-            print(f"Error in date range parsing: {e}")
             driver_trips = driver_trips.none()
 
     # Apply route filter if provided (case-insensitive)
     if route_filter:
-        print(f"Filtering by route: {route_filter}")
         driver_trips = driver_trips.filter(route_name__icontains=route_filter)
 
     # Apply shift time filter if provided
     if shift_time_filter:
         try:
             parsed_shift_time = datetime.strptime(shift_time_filter, '%H:%M').time()
-            print(f"Filtering by shift time: {parsed_shift_time}")
             driver_trips = driver_trips.filter(shift_time=parsed_shift_time)
-        except ValueError as e:
-            print(f"Error in shift time parsing: {e}")
+        except ValueError:
             driver_trips = driver_trips.none()
 
     # Apply trip type filter if provided (case-insensitive)
     if trip_type_filter:
-        print(f"Filtering by trip type: {trip_type_filter}")
         driver_trips = driver_trips.filter(trip_type__iexact=trip_type_filter)
+
+    # Get distinct routes and shift times
+    routes = driver_trips.values_list('route_name', flat=True).distinct()
+    shift_times = driver_trips.values_list('shift_time', flat=True).distinct()
 
     # Prepare the context
     context = {
         'driver_trips': driver_trips,
+        'routes': routes,
+        'shift_times': shift_times,
     }
 
     return render(request, 'duty/report_data.html', context)
+
 
 def download_report(request):
     date_range = request.GET.get('daterange')
