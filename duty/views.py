@@ -263,23 +263,40 @@ def duty_card_no_autocomplete(request):
         qs = DutyCardTrip.objects.filter(duty_card_no__icontains=term).values_list('duty_card_no', flat=True)
         duty_card_nos = list(set(qs))
         return JsonResponse(duty_card_nos, safe=False)
-
+    
 def get_duty_card_details(request):
     if 'duty_card_no' in request.GET:
         duty_card_no = request.GET.get('duty_card_no')
+        print(f"Received duty_card_no: {duty_card_no}")
+
+        # Fetching trips from the database
         trips = DutyCardTrip.objects.filter(duty_card_no=duty_card_no)
-        trip_details = list(trips.values('route_name', 'pick_up_time', 'drop_off_time', 'shift_time', 'trip_type'))
 
-        for trip in trip_details:
-            trip['pick_up_time'] = trip['pick_up_time'].strftime("%H:%M")
-            trip['drop_off_time'] = trip['drop_off_time'].strftime("%H:%M")
-            trip['shift_time'] = trip['shift_time'].strftime("%H:%M")
-            trip['trip_type'] = trip['trip_type']
-            trip['date'] = datetime.today().strftime("%Y-%m-%d")
+        if not trips.exists():
+            return JsonResponse({'error': 'No trips found for the provided duty card number.'}, status=404)
 
+        trip_details = []
+        for trip in trips:
+            # Convert trip_type to match the expected values in the frontend
+            normalized_trip_type = 'inbound' if trip.trip_type == 'IN' else 'outbound'
+
+            trip_info = {
+                'route_name': trip.route_name,
+                'pick_up_time': trip.pick_up_time.strftime("%H:%M") if trip.pick_up_time else '',
+                'drop_off_time': trip.drop_off_time.strftime("%H:%M") if trip.drop_off_time else '',
+                'shift_time': trip.shift_time.strftime("%H:%M") if trip.shift_time else '',
+                'trip_type': normalized_trip_type,
+                'date': trip.date.strftime("%Y-%m-%d") if hasattr(trip, 'date') else datetime.today().strftime("%Y-%m-%d"),
+                'head_count': trip.head_count if hasattr(trip, 'head_count') else 0  # Add other fields as needed
+            }
+            print(f"Processed trip: {trip_info}")
+            trip_details.append(trip_info)
+
+        print(f"Returning trip details: {trip_details}")
         return JsonResponse({'trips': trip_details}, safe=False)
-    
-    return JsonResponse({'trips': []}, safe=False)
+
+    print("No duty_card_no provided in request.")
+    return JsonResponse({'error': 'Duty card number not provided'}, status=400)
 
 @login_required
 def route_autocomplete(request):
