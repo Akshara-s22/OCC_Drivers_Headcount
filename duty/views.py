@@ -272,7 +272,7 @@ def duty_card_no_autocomplete(request):
 def get_duty_card_details(request):
     if 'duty_card_no' in request.GET:
         duty_card_no = request.GET.get('duty_card_no')
-        print(f"Received duty_card_no: {duty_card_no}")
+        #print(f"Received duty_card_no: {duty_card_no}")
 
         # Fetching trips from the database
         trips = DutyCardTrip.objects.filter(duty_card_no=duty_card_no)
@@ -294,13 +294,13 @@ def get_duty_card_details(request):
                 'date': trip.date.strftime("%Y-%m-%d") if hasattr(trip, 'date') else datetime.today().strftime("%Y-%m-%d"),
                 'head_count': trip.head_count if hasattr(trip, 'head_count') else 0  # Add other fields as needed
             }
-            print(f"Processed trip: {trip_info}")
+            #print(f"Processed trip: {trip_info}")
             trip_details.append(trip_info)
 
-        print(f"Returning trip details: {trip_details}")
+        #print(f"Returning trip details: {trip_details}")
         return JsonResponse({'trips': trip_details}, safe=False)
 
-    print("No duty_card_no provided in request.")
+    #print("No duty_card_no provided in request.")
     return JsonResponse({'error': 'Duty card number not provided'}, status=400)
 
 @login_required
